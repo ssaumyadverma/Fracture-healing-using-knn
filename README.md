@@ -13,9 +13,11 @@ Objective -
 
 Definitions -
 
------types of tests done by doctors before plaster is opened - visual inspection, palpation, circulation test, neurological checks, movement and function.
+-----types of tests done by doctors before plaster is opened - visual inspection, palpation alias plp placeholder, circulation test, neurological checks, movement and function.
+-----This palpation, or pressing, of the muscle is an important part of the diagnosis, as it helps to determine the extent and grade of the tear.
 -----Columns in Dataset available
 Sr. No |	Gender	| Age	| Height |	Weight |	BMD |	T_Score |	Z_Score |	Area |	BMC |	BMI |	Obesity | Group	| BFP	| STD
+
 
 From <https://data.mendeley.com/datasets/kys6x6wykj/1/files/de8d831f-472e-409e-8bf4-4495fdc309d7> 
 
@@ -30,6 +32,14 @@ STD
 <    Further research to study extent of fractures
 Human Bone Fractures Multi-modal Image Dataset
 https://data.mendeley.com/datasets/xwfs6xbk47/1     >
+
+----Library to be used
+import numpy as np
+from collections import Counter
+-----To populate fracture type="only one kind at a time", age, health condition, and treatment quality
+-----For KNN Prediction 
+-----To consider BMD and an AI populated column(Number of days taken to heal by the individual) with limited available data
+
 
 If your goal is to study fracture healing progression, you’ll likely need to:
 	Combine fracture detection datasets (like Mendeley’s X-ray dataset) with clinical notes or EHR datasets.
