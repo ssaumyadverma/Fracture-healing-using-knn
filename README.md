@@ -21,8 +21,14 @@ Sr. No |	Gender	| Age	| Height |	Weight |	BMD |	T_Score |	Z_Score |	Area |	BMC |
 
 From <https://data.mendeley.com/datasets/kys6x6wykj/1/files/de8d831f-472e-409e-8bf4-4495fdc309d7> 
 
------to generate column with number_of_days given in fracture haematoma (FxH), Soft callus formation, hard callus formation and remodelling
+
+Generated Columns :
+-----to first generate a column no_days_taken_to_heal with respect to Bone Mass Density by the excel formula : =IF(F2>=-1,"42-56 days", IF(F2>-2.5,"56-84 days", "84-112+ days"))
+-----later stages to generate column with number_of_days given in fracture haematoma (FxH), Soft callus formation, hard callus formation and remodelling
 With other columns being self explanatory by name and having only reported values, for research basis focusing on calculated column STD
+
+For diverse data and boundary case testing I am considering 5 set of AI generate rows which have T score in such a way that it gives No of healing days required more.
+These are - sr. 11,25..etc
 
 STD
 	• The STD column in this dataset is a technical DXA scan parameter, not the statistical standard deviation of the dataset.
