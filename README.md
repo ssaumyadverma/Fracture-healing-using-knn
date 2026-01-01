@@ -28,7 +28,7 @@ Generated Columns :
 With other columns being self explanatory by name and having only reported values, for research basis focusing on calculated column STD
 
 For diverse data and boundary case testing I am considering 5 set of AI generate rows which have T score in such a way that it gives No of healing days required more.
-These are - sr. 11,25..etc
+These are - sr. 10,27,..etc
 
 STD
 	• The STD column in this dataset is a technical DXA scan parameter, not the statistical standard deviation of the dataset.
