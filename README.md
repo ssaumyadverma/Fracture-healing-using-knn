@@ -9,7 +9,7 @@ Dependencies -
 
 Objective - 
 	1. To determine the healing days required to keep the plaster on and other supportive aids for the patient.
-	2. To confirm palpation tests.
+	2. Later stages to confirm palpation tests.
 
 Definitions -
 
