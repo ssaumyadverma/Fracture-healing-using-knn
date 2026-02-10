@@ -45,8 +45,9 @@ from collections import Counter
 -----To populate fracture type="only one kind at a time", age, health condition, and treatment quality
 -----For KNN Prediction 
 -----To consider BMD and an AI populated column(Number of days taken to heal by the individual) with limited available data
-
+-----assumption that the bmi and bmd data are coming from non x-ray method such as Quantitative ultrasound and biochemical markers of born turnover blood or urine tests ( CTX,NTX,osteocalcin)
 # Step 1: Import libraries
+pip install pandas openpyxl
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -55,7 +56,20 @@ from sklearn.metrics import mean_absolute_error
 
 # Step 2: Load dataset (replace with actual path or URL)
 # Example: downloaded CSV from Mendeley dataset
-df = pd.read_csv("clinical_bmd_dataset.csv")
+# Load the Excel file 
+excel_file = "input.xlsx"  
+# replace with your file name 
+sheet_name = "Sheet1" 
+# specify the sheet you want to convert
+# Read the sheet into a DataFrame 
+df = pd.read_excel("Femoral_Neck_BMD_Dataset.xlsx", sheet_name=sheet_name) 
+# Save DataFrame to CSV 
+csv_file = "Femoral_Neck_BMD_Dataset.csv" 
+# desired output file name 
+df.to_csv(csv_file, index=False) 
+print(f"Converted {excel_file} (sheet: {sheet_name}) to {csv_file}")
+
+df = pd.read_csv("Femoral_Neck_BMD_Dataset.csv")
 
 # Step 3: Generate healing days column based on BMD/T-score logic
 # Formula: IF(T_score >= -1, "42-56 days", IF(T_score > -2.5, "56-84 days", "84-112+ days"))
@@ -88,6 +102,24 @@ print("Predicted healing days:", y_pred[:10])
 print("Actual healing days:", y_test[:10])
 print("Mean Absolute Error:", mean_absolute_error(y_test, y_pred))
 
+# Step 9: Define function to recommend X-ray follow-up 
+def recommend_xray(healing_days):
+    """
+    Patients with shorter healing times (fracture likely healed)
+    can be considered for X-ray confirmation.
+    """
+    if healing_days <= 56:
+        return "Recommend X-ray"
+    elif healing_days <= 84:
+        return "Consider X-ray"
+    else:
+        return "Delay X-ray"
+
+
+# Apply function to dataset 
+df["Xray_Recommendation"] = df["no_days_taken_to_heal"].apply(recommend_xray) 
+# Preview results 
+print(df[["T_Score", "no_days_taken_to_heal", "Xray_Recommendation"]].head())
 
 
 
@@ -95,3 +127,4 @@ If your goal is to study fracture healing progression, you’ll likely need to:
 	Combine fracture detection datasets (like Mendeley’s X-ray dataset) with clinical notes or EHR datasets.
 	Look into orthopaedic clinical trials for longitudinal healing data.
   Collaborate with hospitals or research institutions under data-sharing agreements, since healing records are rarely open-access.
+  next function to consider xray readings of patient before opening the fracture and recheck the reading of xrays.
