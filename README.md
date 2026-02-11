@@ -53,26 +53,32 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.metrics import mean_absolute_error, r2_score
 
 # -----------------------------
-# Step 1: Load Excel
+# Step 1: Load CSV Dataset
 # -----------------------------
-excel_file = "Femoral_Neck_BMD_Dataset.xlsx"
-sheet_name = "Sheet1"
-df = pd.read_excel(excel_file, sheet_name=sheet_name)
+csv_file = "Femoral_Neck_BMD_Dataset.csv"   # fixed filename
+df = pd.read_csv(csv_file)
 
 # -----------------------------
 # Step 2: Data Quality Checks
 # -----------------------------
 def check_nulls(df):
-    """Check for missing values in each column."""
     null_report = df.isnull().sum()
     print("\nNull Check Report:\n", null_report)
     return null_report
 
-def check_column_types(df, expected_types):
-    """
-    Validate column data types.
-    expected_types = {"Date": "datetime64[ns]", "Name": "object", "Age": "int64"}
-    """
+def check_column_types(df):
+    # Predefined expected types
+    expected_types = {
+        "Date": "object",        # will parse later if needed
+        "Name": "object",
+        "Age": "int64",
+        "BMI": "float64",
+        "Weight": "float64",
+        "BMD": "float64",
+        "T_Score": "float64",
+        "Obesity": "object",
+        "Patient_ID": "object"
+    }
     type_report = {}
     for col, expected in expected_types.items():
         if col in df.columns:
@@ -81,11 +87,9 @@ def check_column_types(df, expected_types):
     print("\nColumn Type Report:\n", type_report)
     return type_report
 
-def check_string_lengths(df, string_rules):
-    """
-    Validate string length constraints.
+def check_string_lengths(df):
+    # Predefined string length rules
     string_rules = {"Patient_ID": 10, "Name": 50}
-    """
     length_report = {}
     for col, max_len in string_rules.items():
         if col in df.columns and df[col].dtype == "object":
@@ -96,8 +100,8 @@ def check_string_lengths(df, string_rules):
 
 # Run checks
 check_nulls(df)
-check_column_types(df, {"Date": "datetime64[ns]", "Name": "object"})
-check_string_lengths(df, {"Patient_ID": 10, "Name": 50})
+check_column_types(df)
+check_string_lengths(df)
 
 # -----------------------------
 # Step 3: Healing Days Logic
@@ -118,10 +122,7 @@ df["healing_range"] = df["T_Score"].apply(
 # -----------------------------
 # Step 4: Feature Selection
 # -----------------------------
-# Ensure categorical encoding if needed
-if df["Obesity"].dtype == "object":
-    df["Obesity"] = df["Obesity"].map({"Yes": 1, "No": 0})
-
+df["Obesity"] = df["Obesity"].map({"Yes": 1, "No": 0})
 X = df[["Age", "Weight", "BMD", "BMI", "Obesity"]].values
 y = df["no_days_taken_to_heal"].values
 
@@ -165,11 +166,9 @@ df["Xray_Recommendation"] = df["no_days_taken_to_heal"].apply(recommend_xray)
 # -----------------------------
 # Step 10: Save Cleaned Data
 # -----------------------------
-csv_file = "Femoral_Neck_BMD_Dataset_clean.csv"
-df.to_csv(csv_file, index=False)
-print(f"\nCleaned dataset with predictions and recommendations saved to {csv_file}")
-
-
+output_file = "Femoral_Neck_BMD_Dataset_clean.csv"
+df.to_csv(output_file, index=False)
+print(f"\nCleaned dataset with predictions and recommendations saved to {output_file}")
 
 
 If your goal is to study fracture healing progression, you’ll likely need to:
