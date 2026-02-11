@@ -1,68 +1,122 @@
-# Step 1: Import libraries
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsRegressor
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_absolute_error, r2_score
 
-# Step 2: Load dataset
-excel_file = "Femoral_Neck_BMD_Dataset.xlsx"   # replace with actual file path
+# -----------------------------
+# Step 1: Load Excel
+# -----------------------------
+excel_file = "Femoral_Neck_BMD_Dataset.xlsx"
 sheet_name = "Sheet1"
-
-# Read Excel and convert to CSV
 df = pd.read_excel(excel_file, sheet_name=sheet_name)
-csv_file = "Femoral_Neck_BMD_Dataset.csv"
-df.to_csv(csv_file, index=False)
-print(f"Converted {excel_file} (sheet: {sheet_name}) to {csv_file}")
 
-# Reload CSV
-df = pd.read_csv(csv_file)
+# -----------------------------
+# Step 2: Data Quality Checks
+# -----------------------------
+def check_nulls(df):
+    """Check for missing values in each column."""
+    null_report = df.isnull().sum()
+    print("\nNull Check Report:\n", null_report)
+    return null_report
 
-# Step 3: Healing days logic
+def check_column_types(df, expected_types):
+    """
+    Validate column data types.
+    expected_types = {"Date": "datetime64[ns]", "Name": "object", "Age": "int64"}
+    """
+    type_report = {}
+    for col, expected in expected_types.items():
+        if col in df.columns:
+            actual = str(df[col].dtype)
+            type_report[col] = (actual == expected, actual, expected)
+    print("\nColumn Type Report:\n", type_report)
+    return type_report
+
+def check_string_lengths(df, string_rules):
+    """
+    Validate string length constraints.
+    string_rules = {"Patient_ID": 10, "Name": 50}
+    """
+    length_report = {}
+    for col, max_len in string_rules.items():
+        if col in df.columns and df[col].dtype == "object":
+            invalid = df[df[col].str.len() > max_len]
+            length_report[col] = len(invalid)
+    print("\nString Length Report:\n", length_report)
+    return length_report
+
+# Run checks
+check_nulls(df)
+check_column_types(df, {"Date": "datetime64[ns]", "Name": "object"})
+check_string_lengths(df, {"Patient_ID": 10, "Name": 50})
+
+# -----------------------------
+# Step 3: Healing Days Logic
+# -----------------------------
 def healing_days(t_score):
     if t_score >= -1:
-        return 49   # midpoint of 42–56
+        return 49  # midpoint of 42–56
     elif t_score > -2.5:
-        return 70   # midpoint of 56–84
+        return 70  # midpoint of 56–84
     else:
-        return 98   # midpoint of 84–112+
+        return 98  # midpoint of 84–112+
 
 df["no_days_taken_to_heal"] = df["T_Score"].apply(healing_days)
+df["healing_range"] = df["T_Score"].apply(
+    lambda x: "42-56 days" if x >= -1 else "56-84 days" if x > -2.5 else "84-112+ days"
+)
 
-# Step 4: Features + target
+# -----------------------------
+# Step 4: Feature Selection
+# -----------------------------
+# Ensure categorical encoding if needed
+if df["Obesity"].dtype == "object":
+    df["Obesity"] = df["Obesity"].map({"Yes": 1, "No": 0})
+
 X = df[["Age", "Weight", "BMD", "BMI", "Obesity"]].values
 y = df["no_days_taken_to_heal"].values
 
-# Step 5: Train-test split
+# -----------------------------
+# Step 5: Train-Test Split
+# -----------------------------
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-# Step 6: KNN regressor
+# -----------------------------
+# Step 6: Build KNN Regressor
+# -----------------------------
 knn = KNeighborsRegressor(n_neighbors=5, metric="euclidean")
 knn.fit(X_train, y_train)
 
-# Step 7: Predictions
+# -----------------------------
+# Step 7: Predict Healing Days
+# -----------------------------
 y_pred = knn.predict(X_test)
 
-# Step 8: Evaluation
-print("Predicted healing days:", y_pred[:10])
+# -----------------------------
+# Step 8: Evaluate
+# -----------------------------
+print("\nPredicted healing days:", y_pred[:10])
 print("Actual healing days:", y_test[:10])
 print("Mean Absolute Error:", mean_absolute_error(y_test, y_pred))
+print("R² Score:", r2_score(y_test, y_pred))
 
-# Step 9: Define function to recommend X-ray follow-up
-def recommend_xray(healing_days):
-    """
-    Patients with shorter healing times (fracture likely healed)
-    can be considered for X-ray confirmation.
-    """
-    if healing_days <= 56:
+# -----------------------------
+# Step 9: X-ray Recommendation
+# -----------------------------
+def recommend_xray(days):
+    if days <= 56:
         return "Recommend X-ray"
-    elif healing_days <= 84:
+    elif days <= 84:
         return "Consider X-ray"
     else:
         return "Delay X-ray"
 
-# Apply function to dataset
 df["Xray_Recommendation"] = df["no_days_taken_to_heal"].apply(recommend_xray)
 
-# Preview results
-print(df[["T_Score", "no_days_taken_to_heal", "Xray_Recommendation"]].head())
+# -----------------------------
+# Step 10: Save Cleaned Data
+# -----------------------------
+csv_file = "Femoral_Neck_BMD_Dataset_clean.csv"
+df.to_csv(csv_file, index=False)
+print(f"\nCleaned dataset with predictions and recommendations saved to {csv_file}")
